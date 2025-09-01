@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人主页 - zoe.x</title>
+    <link rel="stylesheet" href="./static/style.css">
+    <link rel="shortcut icon" href="./static/f2.png">
+    <link rel="stylesheet" href="./static/fontawesome.css">
+    <!-- 自定义栏目样式 -->
+    <link rel="stylesheet" href="./modules/custom-section.css">
+    <!-- 引入配置文件 -->
+    <script src="./config.js"></script>
+    <!-- 自定义栏目配置 -->
+    <script src="./modules/custom-section-config.js"></script>
+</head>
+<body>
+    <!-- 主题切换按钮 -->
+    <div class="theme-toggle-container">
+        <button class="theme-toggle" id="theme-toggle" title="切换主题">
+            <i class="fas fa-sun" id="theme-icon"></i>
+        </button>
+    </div>
+
+    <div class="main-container">
+        <!-- 左侧个人信息 -->
+        <aside class="sidebar">
+            <section class="profile-section">
+                <div class="profile-avatar">
+                    <img src="./static/1.png" alt="头像">
+                    <div class="avatar-decorations">
+                        <div class="decoration decoration-1">🦄</div>
+                        <div class="decoration decoration-2">😊</div>
+                        <div class="decoration decoration-3">🎯</div>
+                    </div>
+                </div>
+
+                <div class="profile-info">
+                    <div class="status">
+                        <span class="emoji">😊</span>
+                        <span class="title">加载中...</span>
+                    </div>
+                    <div class="quote">
+                        <span class="emoji">📝</span>
+                        <span>加载中...</span>
+                    </div>
+
+                    <div class="social-links">
+                        <!-- 社交链接将由配置文件动态生成 -->
+                    </div>
+
+                    <div class="location-info">
+                        <div class="location">
+                            <i class="fa fa-map-marker"></i>
+                            <span>加载中...</span>
+                        </div>
+                        <div class="name">
+                            <i class="fas fa-briefcase"></i>
+                            <span>加载中...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 个人标签 -->
+            <section class="tags-section">
+                <!-- 标签将由配置文件动态生成 -->
+            </section>
+
+            <!-- 技能展示 -->
+            <section class="skills-section">
+                <h2><i class="fas fa-heart"></i> <span id="welcome-title">加载中...</span></h2>
+                <div class="stat-item">
+                    <span class="stat-label" id="visitor-ip-label">加载中...</span>
+                    <span class="stat-number blur-effect" id="visitor-ip">获取中...</span>
+                </div>
+            </section>
+            <br>
+            <!-- 时间线 -->
+            <section class="timeline-section">
+                <!-- 时间线将由配置文件动态生成 -->
+            </section>
+        </aside>
+
+        <!-- 右侧内容区域 -->
+        <main class="content-area">
+            <!-- GitHub 贡献统计 -->
+            <section class="github-stats">
+                <div class="stats-toggle">
+                    <button id="view-stats" class="stats-toggle-btn active">统计</button>
+                    <button id="view-calendar" class="stats-toggle-btn">日历</button>
+                    <button id="view-diary" class="stats-toggle-btn">日记</button>
+                </div>
+
+                <div class="stats-lines">
+                    <article class="stats-line">
+                        <span class="stats-label" id="total-commits-label">加载中...</span>
+                        <span class="stats-text" id="total-commits-text">加载中... <span class="highlight-number" id="total-commits">0</span> 加载中...</span>
+                    </article>
+
+                    <article class="stats-line">
+                        <span class="stats-label" id="longest-streak-label">最长连续</span>
+                        <span class="stats-text" id="longest-streak-text">已连续 <span class="highlight-number" id="longest-streak">0</span> 天</span>
+                    </article>
+
+                    <article class="stats-line">
+                        <span class="stats-label" id="current-streak-label">当前连续</span>
+                        <span class="stats-text" id="current-streak-text">已连续 <span class="highlight-number" id="current-streak">0</span> 天</span>
+                    </article>
+
+                    <article class="stats-line">
+                        <span class="stats-label" id="main-language-label">加载中...</span>
+                        <span class="stats-text">
+                            <span class="language-tag js"></span>
+                            <span class="language-tag py"></span>
+                            <span class="language-tag ts"></span>
+                            <span class="language-tag css"></span>
+                        </span>
+                    </article>
+                </div>
+
+                <div class="contrib-calendar" id="contrib-calendar" style="display:none">
+                    <div class="contrib-scroll-container">
+                        <div class="contrib-months" id="contrib-months"></div>
+                        <div class="contrib-grid-wrap">
+                            <div class="contrib-weekdays">
+                                <span></span>
+                                <span class="weekday-label">一</span>
+                                <span></span>
+                                <span class="weekday-label">三</span>
+                                <span></span>
+                                <span class="weekday-label">五</span>
+                                <span></span>
+                            </div>
+                            <div class="contrib-grid" id="contrib-grid"></div>
+                        </div>
+                    </div>
+                    <div class="contrib-legend" id="contrib-legend"></div>
+                </div>
+
+                <!-- 签到模块 -->
+                <div class="checkin" id="checkin">
+                    <h3 class="checkin-title"><i class="fas fa-eye"></i> 访问次数</h3>
+                    <div class="checkin-status">
+                        <span id="visit-today-status">今日访问 0 次</span>
+                        <span class="checkin-streak">累计访问 <span id="visit-total">0</span> 次</span>
+                    </div>
+                    <div class="checkin-meta">
+                        <span id="visit-storage-mode" class="storage-badge">存储：本地</span>
+                    </div>
+            <!-- 日记统计 -->
+            <section class="stats-section diary-stats">
+                <h2><i class="fas fa-book"></i> 日记统计</h2>
+                <div class="diary-stats-grid">
+                    <div class="stat-item"><span class="stat-label">连续天数</span><span class="stat-number" id="diary-consecutive">--</span></div>
+                    <div class="stat-item"><span class="stat-label">记录天数</span><span class="stat-number" id="diary-total-days">--</span></div>
+                    <div class="stat-item"><span class="stat-label">日记总数</span><span class="stat-number" id="diary-total-entries">--</span></div>
+                    <div class="stat-item"><span class="stat-label">最近记录</span><span class="stat-number" id="diary-latest">--</span></div>
+                </div>
+                <div class="diary-stats-meta">
+                    <span class="stat-label">当前连续开始于</span>
+                    <span class="stat-text" id="diary-streak-start">--</span>
+                </div>
+            </section>
+
+                </div>
+            </section>
+
+            <!-- 站点展示 -->
+            <section class="sites-section">
+                <h2><i class="fas fa-globe"></i> <span id="websites-title">加载中...</span></h2>
+                <div class="sites-grid">
+                    <!-- 站点将由配置文件动态生成 -->
+                </div>
+            </section>
+
+            <!-- 项目展示 -->
+            <section class="projects-section">
+                <h2><i class="fas fa-code"></i> <span id="projects-title">加载中...</span></h2>
+                <div class="projects-grid">
+                    <!-- 项目将由配置文件动态生成 -->
+                </div>
+            </section>
+
+            <!-- 技能展示 -->
+            <section class="skills-section">
+                <h2><img src="https://img.icons8.com/fluency/24/maintenance.png" alt="🛠️" style="width:24px;height:24px;vertical-align:middle;margin-right:8px;"> <span id="skills-title">加载中...</span></h2>
+                <div class="skills-icons">
+                    <!-- 技能将由配置文件动态生成 -->
+                </div>
+            </section>
+        </main>
+    </div>
+    <footer>
+            <p id="footer-text">加载中...</p>
+    </footer>
+</body>
+<script>
+// 应用配置到页面
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof CONFIG !== 'undefined') {
+        applyConfig();
+    }
+});
+
+function applyConfig() {
+    console.log('开始应用配置:', CONFIG);
+    const { personal, github, social, tags, timeline, websites, projects, skills, texts } = CONFIG;
+
+    // 更新GitHub用户名
+    if (github && github.username) {
+        window.GITHUB_USERNAME = github.username;
+    }
+
+    // 更新页面标题和图标
+    if (personal) {
+        if (personal.name) {
+            document.title = `个人主页 - ${personal.name}`;
+        }
+
+        if (personal.favicon) {
+            const favicon = document.querySelector('link[rel="shortcut icon"]');
+            if (favicon) {
+                favicon.href = personal.favicon;
+            }
+        }
+
+        // 更新头像
+        if (personal.avatar) {
+            const avatar = document.querySelector('.profile-avatar img');
+            if (avatar) {
+                avatar.src = personal.avatar;
+                avatar.alt = personal.name || '头像';
+            }
+        }
+
+        // 更新职位标题
+        if (personal.title) {
+            const titleElement = document.querySelector('.status .title');
+            if (titleElement) {
+                titleElement.textContent = personal.title;
+            }
+        }
+
+        // 更新个人格言
+        if (personal.quote) {
+            const quoteElement = document.querySelector('.quote span:last-child');
+            if (quoteElement) {
+                // 保持原有的高亮样式，只替换文本内容
+                const highlightBlue = '<span class="highlight-blue">or</span>';
+                const highlightPink = '<span class="highlight-pink">so</span>';
+                quoteElement.innerHTML = personal.quote.replace('or', highlightBlue).replace('so', highlightPink);
+            }
+        }
+
+        // 更新地理位置
+        if (personal.location) {
+            const locationElement = document.querySelector('.location span');
+            if (locationElement) {
+                locationElement.textContent = personal.location;
+            }
+        }
+
+        // 更新状态
+        if (personal.status) {
+            const statusElement = document.querySelector('.name span');
+            if (statusElement) {
+                statusElement.textContent = personal.status;
+            }
+        }
+    }
+
+    // 更新社交链接
+    if (social) {
+        updateSocialLinks(social);
+    }
+
+    // 更新标签
+    if (tags) {
+        updateTags(tags);
+    }
+
+    // 更新时间线
+    if (timeline) {
+        updateTimeline(timeline);
+    }
+
+    // 更新站点展示
+    if (websites) {
+        updateWebsites(websites);
+    }
+
+    // 更新项目展示
+    if (projects) {
+        updateProjects(projects);
+    }
+
+    // 更新技能展示
+    if (skills) {
+        updateSkills(skills);
+    }
+
+    // 更新页面文本
+    if (texts) {
+        updateTexts(texts);
+    }
+}
+
+function updateSocialLinks(social) {
+    const socialContainer = document.querySelector('.social-links');
+    if (!socialContainer) {
+        console.error('社交链接容器未找到');
+        return;
+    }
+
+    console.log('更新社交链接:', social);
+
+    // 清空现有链接
+    socialContainer.innerHTML = '';
+
+    // 社交平台图标映射
+    const iconMap = {
+        github: 'fas fa-github',
+        email: 'fas fa-envelope',
+        wechat: 'fas fa-qrcode',
+        telegram: 'fas fa-paper-plane',
+        twitter: 'fab fa-twitter',
+        linkedin: 'fab fa-linkedin',
+        blog: 'fas fa-blog'
+    };
+
+    // 添加配置的社交链接
+    Object.entries(social).forEach(([platform, url]) => {
+        if (!url) return;
+
+        const link = document.createElement('a');
+        link.innerHTML = `<i class="${iconMap[platform] || 'fas fa-link'}"></i>`;
+
+        // 邮箱/微信 采用一键复制
+        if (platform === 'email' || platform === 'wechat') {
+            link.href = 'javascript:void(0)';
+            link.title = platform === 'email' ? '复制邮箱' : '复制微信';
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                try {
+                    await navigator.clipboard.writeText(url);
+                    showToast(platform === 'email' ? '邮箱已复制' : '微信号已复制');
+                } catch (err) {
+                    console.warn('Clipboard API 不可用，尝试降级方案');
+                    const ta = document.createElement('textarea');
+                    ta.value = url;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    try { document.execCommand('copy'); showToast(platform === 'email' ? '邮箱已复制' : '微信号已复制'); } catch (e) { alert(url); }
+                    document.body.removeChild(ta);
+                }
+            });
+        } else {
+            // 其他平台正常跳转
+            link.href = platform === 'email' ? `mailto:${url}` : url;
+            link.target = '_blank';
+            link.addEventListener('click', function(e) {
+                console.log(`点击了 ${platform} 链接:`, url);
+                if (platform === 'email') {
+                    window.location.href = `mailto:${url}`;
+                } else {
+                    window.open(url, '_blank');
+                }
+            });
+        }
+
+        socialContainer.appendChild(link);
+        console.log(`添加了 ${platform} 链接:`, url);
+    });
+
+    // 创建 Toast 容器（若不存在）
+    if (!document.querySelector('.toast-container')) {
+        const toast = document.createElement('div');
+        toast.className = 'toast-container';
+        document.body.appendChild(toast);
+    }
+
+    function showToast(message) {
+        const container = document.querySelector('.toast-container');
+        if (!container) return;
+        const item = document.createElement('div');
+        item.className = 'toast-item';
+        item.textContent = message;
+        container.appendChild(item);
+        requestAnimationFrame(() => item.classList.add('show'));
+        setTimeout(() => {
+            item.classList.remove('show');
+            setTimeout(() => item.remove(), 300);
+        }, 1500);
+    }
+
+    // 保留原有的特殊链接（夏日空调）
+    const specialLink = document.createElement('a');
+    specialLink.href = '#';
+    specialLink.onclick = () => showIframe();
+    specialLink.title = '夏日空调';
+    specialLink.innerHTML = '<i class="fas fa-circle"></i>';
+    socialContainer.appendChild(specialLink);
+
+    console.log('社交链接更新完成，共添加了', socialContainer.children.length, '个链接');
+}
+
+function updateTags(tags) {
+    const tagsContainer = document.querySelector('.tags-section');
+    if (!tagsContainer) return;
+
+    // 清空现有标签
+    tagsContainer.innerHTML = '';
+
+    // 添加配置的标签
+    tags.forEach(tag => {
+        const tagElement = document.createElement('div');
+        tagElement.className = 'tag';
+        tagElement.textContent = tag;
+        tagsContainer.appendChild(tagElement);
+    });
+}
+
+function updateTimeline(timeline) {
+    const timelineContainer = document.querySelector('.timeline-section');
+    if (!timelineContainer) return;
+
+    // 清空现有时间线
+    timelineContainer.innerHTML = '';
+
+    // 添加配置的时间线事件
+    timeline.forEach(event => {
+        const timelineItem = document.createElement('div');
+        timelineItem.className = 'timeline-item';
+
+        timelineItem.innerHTML = `
+            <div class="timeline-dot"></div>
+            <div class="timeline-content">
+                <div class="timeline-title">${event.title}</div>
+                <div class="timeline-date">${event.date}</div>
+            </div>
+        `;
+
+        timelineContainer.appendChild(timelineItem);
+    });
+}
+
+function updateWebsites(websites) {
+    const websitesGrid = document.querySelector('.sites-grid');
+    if (!websitesGrid) return;
+
+    // 清空现有网站
+    websitesGrid.innerHTML = '';
+
+    // 添加配置的网站
+    websites.forEach(site => {
+        const siteLink = document.createElement('a');
+        siteLink.href = site.url;
+        siteLink.target = '_blank';
+        siteLink.className = 'site-link btn-effect';
+
+        siteLink.innerHTML = `
+            <div class="site-card">
+                <div class="site-icon">
+                    <img src="${site.icon}" alt="${site.name}">
+                </div>
+                <div class="site-info">
+                    <h3>${site.name}</h3>
+                    <p>${site.description}</p>
+                </div>
+            </div>
+        `;
+
+        websitesGrid.appendChild(siteLink);
+    });
+}
+
+function updateProjects(projects) {
+    const projectsGrid = document.querySelector('.projects-grid');
+    if (!projectsGrid) return;
+
+    // 清空现有项目
+    projectsGrid.innerHTML = '';
+
+    // 添加配置的项目
+    projects.forEach(project => {
+        const projectLink = document.createElement('a');
+        projectLink.href = project.url;
+        projectLink.target = '_blank';
+        projectLink.className = 'project-link btn-effect';
+
+        projectLink.innerHTML = `
+            <div class="project-card">
+                <div class="project-icon">
+                    <img src="${project.icon}" alt="${project.name}">
+                </div>
+                <div class="project-info">
+                    <h3>${project.name}</h3>
+                    <p>${project.description}</p>
+                </div>
+            </div>
+        `;
+
+        projectsGrid.appendChild(projectLink);
+    });
+}
+
+function updateSkills(skills) {
+    const skillsContainer = document.querySelector('.skills-icons');
+    if (!skillsContainer) return;
+
+    // 清空现有技能
+    skillsContainer.innerHTML = '';
+
+    // 添加配置的技能
+    skills.forEach(skill => {
+        const skillIcon = document.createElement('div');
+        skillIcon.className = 'skill-icon';
+        skillIcon.title = skill.name;
+        skillIcon.innerHTML = `<img src="${skill.icon}" alt="${skill.name}">`;
+        skillsContainer.appendChild(skillIcon);
+    });
+}
+
+function updateTexts(texts) {
+    // 更新GitHub统计区域文本
+    if (texts.githubStats) {
+        const { githubStats } = texts;
+
+        // 总提交数
+        const totalCommitsLabel = document.getElementById('total-commits-label');
+        if (totalCommitsLabel) totalCommitsLabel.textContent = githubStats.totalCommitsLabel;
+
+        const totalCommitsText = document.getElementById('total-commits-text');
+        if (totalCommitsText) {
+            totalCommitsText.innerHTML = `${githubStats.totalCommitsText} <span class="highlight-number" id="total-commits">0</span> ${githubStats.totalCommitsUnit}`;
+        }
+
+        // 最长连续
+        const longestStreakLabel = document.getElementById('longest-streak-label');
+        if (longestStreakLabel) longestStreakLabel.textContent = githubStats.longestStreakLabel;
+
+        const longestStreakText = document.getElementById('longest-streak-text');
+        if (longestStreakText) {
+            longestStreakText.innerHTML = `${githubStats.longestStreakText} <span class="highlight-number" id="longest-streak">0</span> ${githubStats.longestStreakUnit}`;
+        }
+
+        // 主要语言
+        const mainLanguageLabel = document.getElementById('main-language-label');
+        if (mainLanguageLabel) mainLanguageLabel.textContent = githubStats.mainLanguageLabel;
+    }
+
+    // 更新区域标题
+    if (texts.sectionTitles) {
+        const { sectionTitles } = texts;
+
+        const welcomeTitle = document.getElementById('welcome-title');
+        if (welcomeTitle) welcomeTitle.textContent = sectionTitles.welcome;
+
+        const visitorIPLabel = document.getElementById('visitor-ip-label');
+        if (visitorIPLabel) visitorIPLabel.textContent = sectionTitles.visitorIP;
+
+        const websitesTitle = document.getElementById('websites-title');
+        if (websitesTitle) websitesTitle.textContent = sectionTitles.websites;
+
+        const projectsTitle = document.getElementById('projects-title');
+        if (projectsTitle) projectsTitle.textContent = sectionTitles.projects;
+
+        const skillsTitle = document.getElementById('skills-title');
+        if (skillsTitle) skillsTitle.textContent = sectionTitles.skills;
+    }
+
+    // 更新页脚
+    if (texts.footer) {
+        const { footer } = texts;
+        const footerText = document.getElementById('footer-text');
+        if (footerText) {
+            footerText.innerHTML = `© ${footer.year} ${footer.text} <a href="${footer.authorUrl}" target="_blank">${footer.author}</a>`;
+        }
+    }
+}
+</script>
+<!-- 自定义栏目模块 -->
+<script src="./modules/custom-section-config.js"></script>
+<script src="./modules/custom-section.js"></script>
+<script src="./static/script.js"></script>
+</html>

@@ -1,0 +1,12 @@
+# Ignore environment files
+.env
+.env.*
+!*.example
+
+# OS/Editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+config.js
+CUSTOM_SECTION_README.md
