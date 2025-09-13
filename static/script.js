@@ -1,4 +1,428 @@
-// ==================== 主题切换功能 ====================
+// ==================== 视口固定主题按钮 ====================
+
+// 创建视口固定调色盘的位置管理
+function createViewportFixedPalette() {
+    const palettePanel = document.getElementById('circular-palette-panel');
+    if (!palettePanel) return null;
+
+    // 关键修复：将调色盘移动到与主题按钮相同的DOM位置
+    if (palettePanel.parentNode !== document.documentElement) {
+        document.documentElement.appendChild(palettePanel);
+        console.log('调色盘已移动到document.documentElement，与主题按钮保持一致');
+    }
+    
+    // 使用与主题按钮相同的视口坐标系统来居中调色盘
+    function updatePalettePosition() {
+        // 获取实时视口尺寸（与主题按钮使用相同的方法）
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const isMobile = viewportWidth <= 768;
+        
+        // 计算调色盘尺寸
+        let width, maxHeight;
+        if (isMobile) {
+            if (viewportWidth <= 480) {
+                width = Math.min(260, viewportWidth - 30);
+                maxHeight = Math.min(viewportHeight - 100, 400);
+            } else {
+                width = Math.min(280, viewportWidth - 40);
+                maxHeight = Math.min(viewportHeight - 120, 450);
+            }
+        } else {
+            width = 320;
+            maxHeight = Math.min(viewportHeight - 60, 500);
+        }
+        
+        // 使用与主题按钮相同的视口定位方式 - 精确居中
+        const leftPos = (viewportWidth - width) / 2;
+        const topPos = (viewportHeight - maxHeight) / 2;
+        
+        // 检查当前显示状态，避免重置（与主题按钮逻辑一致）
+        const isCurrentlyVisible = palettePanel.classList.contains('active');
+        
+        // 设置调色盘样式 - 完全参照主题按钮的成功方案
+        palettePanel.style.cssText = `
+            position: fixed !important;
+            top: ${Math.max(20, topPos)}px !important;
+            left: ${Math.max(15, leftPos)}px !important;
+            right: auto !important;
+            bottom: auto !important;
+            z-index: 2147483647 !important;
+            width: ${width}px !important;
+            max-width: calc(100vw - 30px) !important;
+            max-height: ${maxHeight}px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 20px !important;
+            background: rgba(50, 50, 60, 0.95) !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            pointer-events: ${isCurrentlyVisible ? 'all' : 'none'} !important;
+            display: block !important;
+            visibility: ${isCurrentlyVisible ? 'visible' : 'hidden'} !important;
+            opacity: ${isCurrentlyVisible ? '1' : '0'} !important;
+            transform: none !important;
+            -webkit-transform: none !important;
+            -moz-transform: none !important;
+            -ms-transform: none !important;
+            -o-transform: none !important;
+            will-change: auto !important;
+            perspective: none !important;
+            transform-style: flat !important;
+            backface-visibility: visible !important;
+            isolation: auto !important;
+            contain: none !important;
+            filter: none !important;
+            clip-path: none !important;
+            mask: none !important;
+            mix-blend-mode: normal !important;
+            overflow-y: auto !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+        `;
+        
+        // 主题适配（与主题按钮保持一致的主题检测）
+        if (document.documentElement.getAttribute('data-theme') === 'dark') {
+            palettePanel.style.setProperty('background', 'rgba(40, 40, 40, 0.95)', 'important');
+            palettePanel.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.1)', 'important');
+        } else {
+            // 亮色主题使用暗色背景
+            palettePanel.style.setProperty('background', 'rgba(50, 50, 60, 0.95)', 'important');
+            palettePanel.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.2)', 'important');
+        }
+    }
+    
+    // 显示调色盘时的样式（不调用可能重置的函数）
+    function showPalette() {
+        // 直接设置显示样式，不调用updatePalettePosition避免重置
+        palettePanel.style.setProperty('opacity', '1', 'important');
+        palettePanel.style.setProperty('visibility', 'visible', 'important');
+        palettePanel.style.setProperty('pointer-events', 'all', 'important');
+        palettePanel.classList.add('active');
+        
+        // 立即更新位置确保居中
+        updatePalettePositionWhenVisible();
+    }
+    
+    // 隐藏调色盘时的样式（添加调试信息）
+    function hidePalette() {
+        console.log('调色盘被隐藏，调用来源：', new Error().stack);
+        palettePanel.style.setProperty('opacity', '0', 'important');
+        palettePanel.style.setProperty('visibility', 'hidden', 'important');
+        palettePanel.style.setProperty('pointer-events', 'none', 'important');
+        palettePanel.classList.remove('active');
+    }
+    
+    // 监听窗口变化（使用与主题按钮相同的处理方式）
+    let resizeTimer;
+    function handleResize() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            // 与主题按钮相同：隐藏时更新位置，显示时只更新位置不重置状态
+            if (!palettePanel.classList.contains('active')) {
+                updatePalettePosition();
+            } else {
+                // 使用与主题按钮相同的实时位置更新逻辑
+                updatePalettePositionWhenVisible();
+            }
+        }, 16); // 与主题按钮相同的60fps更新频率
+    }
+    
+    // 监听滚动事件（完全参照主题按钮的处理方式）
+    let scrollTimer;
+    function handleScroll() {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+            // 修正：与主题按钮一致，滚动时总是更新位置确保固定在视口
+            if (palettePanel.classList.contains('active')) {
+                updatePalettePositionWhenVisible();
+            }
+        }, 16); // 与主题按钮相同的更新频率
+    }
+    
+    // 调色盘显示时的位置更新函数（完全参照主题按钮方案）
+    function updatePalettePositionWhenVisible() {
+        // 使用与主题按钮完全相同的视口检测方法
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const isMobile = viewportWidth <= 768;
+
+        // 计算调色盘尺寸（与主题按钮使用相同的响应式逻辑）
+        let width, maxHeight;
+        if (isMobile) {
+            if (viewportWidth <= 480) {
+                width = Math.min(260, viewportWidth - 30);
+                maxHeight = Math.min(viewportHeight - 100, 400);
+            } else {
+                width = Math.min(280, viewportWidth - 40);
+                maxHeight = Math.min(viewportHeight - 120, 450);
+            }
+        } else {
+            width = 320;
+            maxHeight = Math.min(viewportHeight - 60, 500);
+        }
+
+        // 使用与主题按钮相同的精确像素定位计算
+        const leftPos = (viewportWidth - width) / 2;
+        const topPos = (viewportHeight - maxHeight) / 2;
+
+        // 使用与主题按钮相同的样式设置方法 - 只更新位置和尺寸
+        palettePanel.style.setProperty('position', 'fixed', 'important');
+        palettePanel.style.setProperty('top', `${Math.max(20, topPos)}px`, 'important');
+        palettePanel.style.setProperty('left', `${Math.max(15, leftPos)}px`, 'important');
+        palettePanel.style.setProperty('right', 'auto', 'important');
+        palettePanel.style.setProperty('bottom', 'auto', 'important');
+        palettePanel.style.setProperty('width', `${width}px`, 'important');
+        palettePanel.style.setProperty('max-height', `${maxHeight}px`, 'important');
+        palettePanel.style.setProperty('z-index', '2147483647', 'important');
+
+        // 确保使用与主题按钮相同的transform设置
+        palettePanel.style.setProperty('transform', 'none', 'important');
+        palettePanel.style.setProperty('-webkit-transform', 'none', 'important');
+        palettePanel.style.setProperty('will-change', 'auto', 'important');
+        palettePanel.style.setProperty('contain', 'none', 'important');
+    }
+    
+    window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+            // 设备旋转时也要保持显示状态
+            if (!palettePanel.classList.contains('active')) {
+                updatePalettePosition();
+            } else {
+                updatePalettePositionWhenVisible();
+            }
+        }, 100);
+    });
+    
+    // 初始位置设置
+    updatePalettePosition();
+    
+    // 立即隐藏调色盘，防止页面刷新时闪现（但不添加调试日志）
+    palettePanel.style.setProperty('opacity', '0', 'important');
+    palettePanel.style.setProperty('visibility', 'hidden', 'important');
+    palettePanel.style.setProperty('pointer-events', 'none', 'important');
+    palettePanel.classList.remove('active');
+    
+    // 监听主题变化（但不重置显示状态）
+    const themeObserver = new MutationObserver(() => {
+        // 只有在调色盘隐藏时才更新位置，避免显示时被重置
+        if (!palettePanel.classList.contains('active')) {
+            updatePalettePosition();
+        } else {
+            // 如果调色盘正在显示，只更新主题相关样式
+            if (document.documentElement.getAttribute('data-theme') === 'dark') {
+                palettePanel.style.setProperty('background', 'rgba(40, 40, 40, 0.95)', 'important');
+                palettePanel.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.1)', 'important');
+            } else {
+                palettePanel.style.setProperty('background', 'rgba(50, 50, 60, 0.95)', 'important');
+                palettePanel.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.2)', 'important');
+            }
+        }
+    });
+    
+    themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-theme']
+    });
+    
+    // 定期检查（使用与主题按钮相同的检查频率和逻辑）
+    setInterval(() => {
+        // 与主题按钮相同：检查DOM存在性，并强制更新位置确保固定
+        if (!document.documentElement.contains(palettePanel)) {
+            // 如果调色盘被从DOM中移除了，重新添加到documentElement（与主题按钮处理方式一致）
+            document.documentElement.appendChild(palettePanel);
+            console.log('调色盘已重新添加到document.documentElement');
+        }
+        // 强制更新位置，确保在Chrome中始终固定在视口中心
+        if (palettePanel.classList.contains('active')) {
+            updatePalettePositionWhenVisible();
+        }
+    }, 2000); // 使用与主题按钮相同的检查间隔
+    
+    return {
+        panel: palettePanel,
+        updatePosition: updatePalettePosition,
+        updateVisiblePosition: updatePalettePositionWhenVisible,
+        show: showPalette,
+        hide: hidePalette
+    };
+}
+
+// 创建真正固定在视口的主题按钮
+function createViewportFixedThemeButton() {
+    // 删除任何现有的主题按钮
+    const existingContainers = document.querySelectorAll('.theme-toggle-container, #independent-theme-container');
+    existingContainers.forEach(el => el.remove());
+    
+    // 创建独立的按钮容器
+    const container = document.createElement('div');
+    container.id = 'viewport-theme-container';
+    
+    // 创建按钮
+    const button = document.createElement('button');
+    button.id = 'theme-toggle';
+    button.className = 'theme-toggle';
+    button.title = '切换主题';
+    
+    // 创建图标
+    const icon = document.createElement('i');
+    icon.id = 'theme-icon';
+    icon.className = 'fas fa-sun';
+    
+    button.appendChild(icon);
+    container.appendChild(button);
+    
+    // 使用实时计算的视口坐标
+    function updateButtonPosition() {
+        const viewportWidth = window.innerWidth;
+        const viewportHeight = window.innerHeight;
+        const isMobile = viewportWidth <= 768;
+        
+        const size = isMobile ? 44 : 50;
+        const margin = isMobile ? 15 : 30;
+        
+        // 计算精确的像素位置
+        const rightPos = margin;
+        const topPos = margin;
+        
+        // 设置容器样式 - 使用像素精确定位
+        container.style.cssText = `
+            position: fixed !important;
+            top: ${topPos}px !important;
+            right: ${rightPos}px !important;
+            left: auto !important;
+            bottom: auto !important;
+            z-index: 2147483647 !important;
+            width: ${size}px !important;
+            height: ${size}px !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            background: transparent !important;
+            pointer-events: auto !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            transform: none !important;
+            -webkit-transform: none !important;
+            -moz-transform: none !important;
+            -ms-transform: none !important;
+            -o-transform: none !important;
+            will-change: auto !important;
+            perspective: none !important;
+            transform-style: flat !important;
+            backface-visibility: visible !important;
+            isolation: auto !important;
+            contain: none !important;
+            filter: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            clip-path: none !important;
+            mask: none !important;
+            mix-blend-mode: normal !important;
+        `;
+        
+        // 设置按钮样式 - 改为透明背景
+        button.style.cssText = `
+            width: ${size}px !important;
+            height: ${size}px !important;
+            border-radius: 50% !important;
+            border: none !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            color: #fff !important;
+            cursor: pointer !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            font-size: ${isMobile ? 18 : 20}px !important;
+            box-shadow: none !important;
+            position: relative !important;
+            overflow: hidden !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            outline: none !important;
+            user-select: none !important;
+            -webkit-user-select: none !important;
+            -moz-user-select: none !important;
+            -ms-user-select: none !important;
+            transition: all 0.2s ease !important;
+            transform: none !important;
+            -webkit-transform: none !important;
+            font-family: inherit !important;
+        `;
+        
+        // 设置图标样式
+        icon.style.cssText = `
+            font-size: ${isMobile ? 18 : 20}px !important;
+            color: inherit !important;
+            pointer-events: none !important;
+            transition: none !important;
+            transform: none !important;
+            -webkit-transform: none !important;
+        `;
+    }
+    
+    // 添加交互效果 - 透明化设计
+    button.addEventListener('mouseenter', function() {
+        this.style.setProperty('background', 'rgba(255, 255, 255, 0.2)', 'important');
+        this.style.setProperty('box-shadow', '0 6px 20px rgba(0, 0, 0, 0.3)', 'important');
+        this.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.4)', 'important');
+    });
+    
+    button.addEventListener('mouseleave', function() {
+        this.style.setProperty('background', 'rgba(255, 255, 255, 0.1)', 'important');
+        this.style.setProperty('box-shadow', '0 4px 15px rgba(0, 0, 0, 0.2)', 'important');
+        this.style.setProperty('border', '1px solid rgba(255, 255, 255, 0.3)', 'important');
+    });
+    
+    // 初始位置更新
+    updateButtonPosition();
+    
+    // 实时监听窗口变化并更新位置
+    let resizeTimer;
+    function handleResize() {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            updateButtonPosition();
+        }, 16); // 约60fps
+    }
+    
+    window.addEventListener('resize', handleResize, { passive: true });
+    window.addEventListener('orientationchange', () => {
+        setTimeout(updateButtonPosition, 100);
+    });
+    
+    // 监听滚动确保位置不变（虽然fixed应该不需要，但以防万一）
+    let scrollTimer;
+    function handleScroll() {
+        clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(() => {
+            updateButtonPosition();
+        }, 16);
+    }
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    
+    // 创建并插入到DOM中，使用createDocumentFragment提高性能
+    const fragment = document.createDocumentFragment();
+    fragment.appendChild(container);
+    document.documentElement.appendChild(fragment);
+    
+    // 定期强制检查位置（作为最后的保障）
+    setInterval(() => {
+        if (!document.documentElement.contains(container)) {
+            document.documentElement.appendChild(container);
+        }
+        updateButtonPosition();
+    }, 2000);
+    
+    return { container, button, icon };
+}
 
 // 主题管理类
 class ThemeManager {
@@ -6,6 +430,7 @@ class ThemeManager {
         this.currentTheme = this.getStoredTheme() || this.getSystemTheme();
         this.themeToggle = null;
         this.themeIcon = null;
+        this.independentButton = null;
         this.init();
     }
 
@@ -69,7 +494,16 @@ class ThemeManager {
 
     // 初始化
     init() {
-        // 等待DOM加载完成
+        // 创建真正固定在视口的主题按钮
+        this.independentButton = createViewportFixedThemeButton();
+        
+        // 创建视口固定的调色盘
+        this.viewportPalette = createViewportFixedPalette();
+
+        // 将调色盘管理器暴露给全局作用域，供HTML中的事件处理器使用
+        window.paletteManager = this.viewportPalette;
+        
+        // 等待DOM加载完成后设置事件
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.setupThemeToggle());
         } else {
@@ -89,8 +523,9 @@ class ThemeManager {
 
     // 设置主题切换按钮
     setupThemeToggle() {
-        this.themeToggle = document.getElementById('theme-toggle');
-        this.themeIcon = document.getElementById('theme-icon');
+        // 使用独立创建的按钮
+        this.themeToggle = this.independentButton ? this.independentButton.button : document.getElementById('theme-toggle');
+        this.themeIcon = this.independentButton ? this.independentButton.icon : document.getElementById('theme-icon');
 
         if (this.themeToggle) {
             this.themeToggle.addEventListener('click', () => this.toggleTheme());
@@ -99,8 +534,9 @@ class ThemeManager {
     }
 }
 
-// 创建主题管理器实例
+// 创建主题管理器实例并设置为全局可访问
 const themeManager = new ThemeManager();
+window.themeManager = themeManager;
 
 // GitHub用户名配置 - 从配置文件或全局变量获取
 const GITHUB_USERNAME = window.GITHUB_USERNAME ||
@@ -149,6 +585,8 @@ async function fetchGitHubContributions(username, forceRefresh = false) {
             totalCommits: statsFromCalendar.totalContribs,
             longestStreak: statsFromCalendar.longestStreak,
             currentStreak: statsFromCalendar.currentStreak,
+            activeDays: statsFromCalendar.activeDays,
+            activeRate: statsFromCalendar.activeRate,
             languages: githubStats.languages
         });
         renderContribCalendar(calendarData);
@@ -309,12 +747,20 @@ function calculateStatsFromCalendar(contrib) {
 
     let totalContribs = 0;
     let longestStreak = 0;
-    let currentStreak = 0;
-    let currentStreakToday = 0; // 单独保存“以今天结尾”的连续天数
+    let currentStreak = 0; // 当前连续天数
+    let activeDays = 0;    // 活跃天数
 
     // 使用本地日期格式进行比较
+    const oneYearAgo = new Date(end); // 从今天开始计算一年
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    let totalPossibleDays = 0; // 过去一年的总天数
+
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-        // 使用本地日期字符串，避免时区转换问题
+        // 仅计算过去一年的天数
+        if (d >= oneYearAgo) {
+            totalPossibleDays++;
+        }
+
         const year = d.getFullYear();
         const month = String(d.getMonth() + 1).padStart(2, '0');
         const day = String(d.getDate()).padStart(2, '0');
@@ -323,20 +769,19 @@ function calculateStatsFromCalendar(contrib) {
         const count = map.get(key) || 0;
         totalContribs += count;
         if (count > 0) {
+            activeDays++; // 计入活跃天数
             currentStreak += 1;
             if (currentStreak > longestStreak) longestStreak = currentStreak;
         } else {
             currentStreak = 0;
         }
-        // 若当前天是“今天”，记录当前连续
-        if (d.getTime() === end.getTime()) {
-            currentStreakToday = count > 0 ? currentStreak : 0;
-        }
     }
 
-    return { totalContribs, longestStreak, currentStreak: currentStreakToday };
+    const activeRate = totalPossibleDays > 0 ? ((activeDays / totalPossibleDays) * 100).toFixed(2) : 0; // 保留两位小数
+
+    return { totalContribs, longestStreak, currentStreak, activeDays, activeRate };
 }
-// ---------- 访问统计（本地存储，自动计数） ----------
+// ---------- 全局访问统计（所有访问者统一计数） ----------
 async function initCheckin() {
     const todayStatusEl = document.getElementById('visit-today-status');
     const totalEl = document.getElementById('visit-total');
@@ -344,92 +789,262 @@ async function initCheckin() {
     const box = document.getElementById('checkin');
     if (!(todayStatusEl && totalEl && storageModeEl && box)) return;
 
-    const KEY = 'visit:data';
     const todayKey = new Date(); todayKey.setHours(0,0,0,0);
+    const today = new Date(todayKey).toISOString().slice(0,10);
 
-    function load() {
-        try { return JSON.parse(localStorage.getItem(KEY)) || { days: [], total: 0 }; }
-        catch { return { days: [], total: 0 }; }
+    function render(todayCount = 0, totalCount = 0, isKV = false, isNewVisit = false) {
+        // 显示今日访问人数（去重后）
+        todayStatusEl.textContent = `今日访问 ${todayCount} 人`;
+        totalEl.textContent = String(totalCount);
+        
+        // 显示存储状态和访问状态
+        let statusText = `存储：${isKV ? '远程（KV）' : '本地'}`;
+        if (isNewVisit) {
+            statusText += ' | 新访问者 🎉';
+        } else {
+            statusText += ' | 今日已记录';
+        }
+        
+        storageModeEl.textContent = statusText;
+        storageModeEl.style.color = isKV ? 'var(--accent-blue)' : 'var(--text-muted)';
+        
+        console.log('按日去重访问统计:', { 
+            today, 
+            todayCount, 
+            totalCount, 
+            storage: isKV ? 'KV' : 'Local',
+            isNewVisit
+        });
     }
-    function save(data) { localStorage.setItem(KEY, JSON.stringify(data)); }
 
-    function fmt(d) { return new Date(d).toISOString().slice(0,10); }
-
-    function render() {
-        const data = load();
-        const today = fmt(todayKey);
-        const todayCount = (data.days || []).filter(d => d === today).length;
-        todayStatusEl.textContent = `今日访问 ${todayCount} 次`;
-        totalEl.textContent = String(data.total || 0);
-    }
-
-    // 页面加载即累计一次访问，并检测存储方式
+    // 按IP每天只记录一次访问
     (async function autoCount() {
-        const data = load();
-        const today = fmt(todayKey);
-        data.days = data.days || [];
-        data.days.push(today);
-        data.total = (data.total || 0) + 1;
-        save(data);
-
-        // 检测 KV 可用性
+        // 检测 KV 可用性并更新全局计数
         let usingKV = false;
+        let todayCount = 0;
+        let totalCount = 0;
+        let isNewVisit = false;
+        
         try {
-            // 使用 HEAD 测试端点存在性，避免 404 被误判
-            const test = await fetch('/api/checkin?uid=ping', { method: 'GET' });
-            usingKV = (test.status === 200);
-        } catch (_) { usingKV = false; }
-
-        // 若 KV 可用，同步一次（可忽略失败）
-        if (usingKV) {
-            try {
-                const uid = getOrCreateUID();
-                await checkinKV_save(uid, today);
-            } catch (e) { /* 忽略 */ }
+            // 尝试使用 KV 全局计数器（按IP去重）
+            const response = await fetch('/api/daily-visit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    date: today,
+                    // 不发送IP，让服务端自动获取
+                    timestamp: Date.now()
+                })
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                usingKV = true;
+                todayCount = result.todayCount || 0;
+                totalCount = result.totalCount || 0;
+                isNewVisit = result.isNewVisit || false;
+                
+                console.log('KV按日去重计数:', { 
+                    todayCount, 
+                    totalCount, 
+                    isNewVisit, 
+                    message: result.message 
+                });
+            } else {
+                throw new Error(`KV请求失败: ${response.status}`);
+            }
+        } catch (kvError) {
+            console.warn('KV不可用，使用本地去重计数:', kvError.message);
+            usingKV = false;
+            
+            // 使用本地存储作为降级方案（按浏览器指纹去重）
+            const result = handleLocalDailyVisit(today);
+            todayCount = result.todayCount;
+            totalCount = result.totalCount;
+            isNewVisit = result.isNewVisit;
         }
 
-        if (storageModeEl) storageModeEl.textContent = `存储：${usingKV ? '远程（KV）' : '本地'}`;
-        render();
+        // 显示统计结果
+        render(todayCount, totalCount, usingKV, isNewVisit);
     })();
-
-    // 保留按钮但禁用
-    btn.addEventListener('click', (e) => { e.preventDefault(); return false; });
 }
 
-// ---------- 可选：将签到同步到 Cloudflare KV ----------
-async function checkinKV_isAvailable() {
+// 本地存储辅助函数
+function getLocalVisitData() {
     try {
-        const r = await fetch('/api/checkin?uid=test', { method: 'GET' });
-        return r.status !== 501; // 501 代表未配置 KV
+        return JSON.parse(localStorage.getItem('daily-visit-data')) || { 
+            dailyVisits: {},  // { 'YYYY-MM-DD': [fingerprint1, fingerprint2, ...] }
+            totalUniqueVisitors: 0
+        };
     } catch {
-        return false;
+        return { dailyVisits: {}, totalUniqueVisitors: 0 };
     }
 }
 
-async function checkinKV_load(uid) {
-    const r = await fetch(`/api/checkin?uid=${encodeURIComponent(uid)}`);
-    if (!r.ok) throw new Error('kv load failed');
-    return r.json(); // { days: [] }
+function saveLocalVisitData(data) {
+    localStorage.setItem('daily-visit-data', JSON.stringify(data));
 }
 
-async function checkinKV_save(uid, day) {
-    const r = await fetch(`/api/checkin?uid=${encodeURIComponent(uid)}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ day })
-    });
-    if (!r.ok) throw new Error('kv save failed');
-    return r.json();
+// 处理本地按日去重访问
+function handleLocalDailyVisit(today) {
+    const fingerprint = generateBrowserFingerprint();
+    const data = getLocalVisitData();
+    
+    // 初始化今日数据
+    if (!data.dailyVisits[today]) {
+        data.dailyVisits[today] = [];
+    }
+    
+    // 检查是否为新访问
+    const isNewVisit = !data.dailyVisits[today].includes(fingerprint);
+    
+    if (isNewVisit) {
+        // 新访问者，添加到今日记录
+        data.dailyVisits[today].push(fingerprint);
+        
+        // 检查是否是全局新访问者
+        const allFingerprints = new Set();
+        Object.values(data.dailyVisits).forEach(dayFingerprints => {
+            dayFingerprints.forEach(fp => allFingerprints.add(fp));
+        });
+        
+        data.totalUniqueVisitors = allFingerprints.size;
+        saveLocalVisitData(data);
+        
+        console.log('本地新访问者:', { fingerprint, today, isNewVisit: true });
+    } else {
+        console.log('本地重复访问:', { fingerprint, today, isNewVisit: false });
+    }
+    
+    return {
+        todayCount: data.dailyVisits[today].length,
+        totalCount: data.totalUniqueVisitors,
+        isNewVisit: isNewVisit
+    };
 }
+
+// 生成浏览器指纹的函数（用于本地去重）
+function generateBrowserFingerprint() {
+    // 收集浏览器特征信息
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.textBaseline = 'top';
+    ctx.font = '14px Arial';
+    ctx.fillText('Browser fingerprint text', 2, 2);
+    const canvasFingerprint = canvas.toDataURL().slice(22, 32); // 取部分 canvas 数据
+    
+    const features = [
+        navigator.userAgent.length.toString(36),
+        screen.width.toString(36) + screen.height.toString(36),
+        new Date().getTimezoneOffset().toString(36),
+        navigator.language || 'unknown',
+        canvasFingerprint,
+        (navigator.hardwareConcurrency || 0).toString(36),
+        (screen.colorDepth || 0).toString(36)
+    ].join('');
+    
+    // 简单的哈希函数
+    let hash = 0;
+    for (let i = 0; i < features.length; i++) {
+        const char = features.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // 转换为32位整数
+    }
+    
+    return Math.abs(hash).toString(36).slice(0, 12);
+}
+
+// ---------- 全局访问统计辅助函数 ----------
+// 注意：旧的个人 UID 系统已禁用，现在使用全局统一计数
+// 保留 UID 相关函数以防其他代码依赖
 
 function getOrCreateUID() {
     const KEY = 'checkin:uid';
+    const COOKIE_KEY = 'checkin_uid';
+    
+    // 先尝试从localStorage获取
     let id = localStorage.getItem(KEY);
+    
+    // 如果 localStorage 中没有，尝试仮 cookie 中获取
     if (!id) {
-        id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
-        localStorage.setItem(KEY, id);
+        id = getCookie(COOKIE_KEY);
+        if (id) {
+            // 仮 cookie 中恢复到 localStorage
+            localStorage.setItem(KEY, id);
+            console.log('仮 cookie 恢复UID:', id);
+        }
     }
+    
+    // 如果仍然没有，创建新的 UID
+    if (!id) {
+        // 使用浏览器指纹 + 时间戳生成相对固定的 ID
+        const fingerprint = generateBrowserFingerprint();
+        const timestamp = Date.now().toString(36);
+        id = `${fingerprint}-${timestamp}`;
+        
+        // 同时存储到 localStorage 和 cookie
+        localStorage.setItem(KEY, id);
+        setCookie(COOKIE_KEY, id, 365); // cookie 有效期 1 年
+        console.log('创建新UID:', id);
+    } else {
+        // 确保 cookie 也有该 UID（防止 cookie 过期）
+        if (getCookie(COOKIE_KEY) !== id) {
+            setCookie(COOKIE_KEY, id, 365);
+        }
+    }
+    
     return id;
+}
+
+// 生成浏览器指纹的函数
+function generateBrowserFingerprint() {
+    // 收集浏览器特征信息
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.textBaseline = 'top';
+    ctx.font = '14px Arial';
+    ctx.fillText('Browser fingerprint text', 2, 2);
+    const canvasFingerprint = canvas.toDataURL().slice(22, 32); // 取部分 canvas 数据
+    
+    const features = [
+        navigator.userAgent.length.toString(36),
+        screen.width.toString(36) + screen.height.toString(36),
+        new Date().getTimezoneOffset().toString(36),
+        navigator.language || 'unknown',
+        canvasFingerprint
+    ].join('');
+    
+    // 简单的哈希函数
+    let hash = 0;
+    for (let i = 0; i < features.length; i++) {
+        const char = features.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash; // 转换为32位整数
+    }
+    
+    return Math.abs(hash).toString(36).slice(0, 8);
+}
+
+// Cookie 操作工具函数
+function setCookie(name, value, days) {
+    let expires = "";
+    if (days) {
+        const date = new Date();
+        date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+        expires = "; expires=" + date.toUTCString();
+    }
+    document.cookie = name + "=" + value + expires + "; path=/; SameSite=Lax";
+}
+
+function getCookie(name) {
+    const nameEQ = name + "=";
+    const ca = document.cookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+        if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
+    }
+    return null;
 }
 // ---------- 自定义栏目初始化（替代原日记统计） ----------
 // 注意：原日记统计功能已移至 modules/custom-section.js
@@ -447,16 +1062,20 @@ function updateGitHubDisplay(data) {
         animateNumber(totalCommitsElement, parseInt(totalCommitsElement.textContent.replace(/,/g, '')), data.totalCommits, 2000);
     }
 
-    // 更新最长连续
+    // 更新连续统计
     const longestStreakElement = document.getElementById('longest-streak');
-    if (longestStreakElement) {
+    const currentStreakEl = document.getElementById('current-streak');
+    if (longestStreakElement && currentStreakEl) {
         animateNumber(longestStreakElement, parseInt(longestStreakElement.textContent), data.longestStreak, 1500);
+        animateNumber(currentStreakEl, parseInt(currentStreakEl.textContent), data.currentStreak, 1200);
     }
 
-    // 更新当前连续
-    const currentStreakEl = document.getElementById('current-streak');
-    if (currentStreakEl && typeof data.currentStreak === 'number') {
-        animateNumber(currentStreakEl, parseInt(currentStreakEl.textContent), data.currentStreak, 1200);
+    // 更新活跃度
+    const activeDaysEl = document.getElementById('active-days');
+    const activeRateEl = document.getElementById('active-rate');
+    if (activeDaysEl && activeRateEl) {
+        animateNumber(activeDaysEl, parseInt(activeDaysEl.textContent), data.activeDays, 1200);
+        activeRateEl.textContent = data.activeRate; // 活跃率已是字符串，不需要动画
     }
 
     // 更新语言统计

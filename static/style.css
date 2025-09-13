@@ -6,7 +6,7 @@
 
 /* CSS变量定义 - 亮色主题 */
 :root {
-    /* 背景色 */
+    /* 默认背景色 - 蓝色主题 */
     --bg-primary: linear-gradient(135deg, rgba(30, 60, 114, 0.9) 0%, rgba(42, 82, 152, 0.8) 50%, rgba(102, 126, 234, 0.7) 100%);
     --bg-image: url(https://jsdelivr.badking.pp.ua/gh/formeai/ok-image@imavvg/ok/image/1749867098809freecompress-.png);
     --bg-overlay: rgba(255, 255, 255, 0.05);
@@ -34,10 +34,39 @@
     --shadow-heavy: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
+/* 背景主题变体 */
+[data-bg-theme="purple"] {
+    --bg-primary: linear-gradient(135deg, rgba(75, 0, 130, 0.9) 0%, rgba(138, 43, 226, 0.8) 50%, rgba(186, 85, 211, 0.7) 100%);
+}
+
+[data-bg-theme="green"] {
+    --bg-primary: linear-gradient(135deg, rgba(34, 139, 34, 0.9) 0%, rgba(50, 205, 50, 0.8) 50%, rgba(144, 238, 144, 0.7) 100%);
+}
+
+[data-bg-theme="orange"] {
+    --bg-primary: linear-gradient(135deg, rgba(255, 69, 0, 0.9) 0%, rgba(255, 140, 0, 0.8) 50%, rgba(255, 165, 0, 0.7) 100%);
+}
+
+[data-bg-theme="pink"] {
+    --bg-primary: linear-gradient(135deg, rgba(255, 20, 147, 0.9) 0%, rgba(255, 105, 180, 0.8) 50%, rgba(255, 182, 193, 0.7) 100%);
+}
+
+[data-bg-theme="teal"] {
+    --bg-primary: linear-gradient(135deg, rgba(0, 128, 128, 0.9) 0%, rgba(32, 178, 170, 0.8) 50%, rgba(72, 209, 204, 0.7) 100%);
+}
+
+[data-bg-theme="red"] {
+    --bg-primary: linear-gradient(135deg, rgba(220, 20, 60, 0.9) 0%, rgba(255, 99, 71, 0.8) 50%, rgba(255, 127, 80, 0.7) 100%);
+}
+
+[data-bg-theme="gold"] {
+    --bg-primary: linear-gradient(135deg, rgba(218, 165, 32, 0.9) 0%, rgba(255, 215, 0, 0.8) 50%, rgba(255, 228, 181, 0.7) 100%);
+}
+
 /* 暗色主题 */
 [data-theme="dark"] {
-    /* 背景色 */
-    --bg-primary: linear-gradient(135deg, rgba(15, 15, 15, 0.95) 0%, rgba(25, 25, 25, 0.9) 50%, rgba(35, 35, 35, 0.85) 100%);
+    /* 背景色 - 强制使用默认暗色背景，不受调色盘影响 */
+    --bg-primary: linear-gradient(135deg, rgba(15, 15, 15, 0.95) 0%, rgba(25, 25, 25, 0.9) 50%, rgba(35, 35, 35, 0.85) 100%) !important;
     --bg-image: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
     --bg-overlay: rgba(0, 0, 0, 0.3);
     --bg-card: rgba(255, 255, 255, 0.05);
@@ -63,45 +92,217 @@
     --shadow-heavy: 0 8px 32px rgba(0, 0, 0, 0.3);
 }
 
-/* 主题切换按钮 */
-.theme-toggle-container {
-    position: fixed;
-    top: 30px;
-    right: 30px;
-    z-index: 1000;
+/* 确保暗色主题下自定义背景被覆盖 */
+[data-theme="dark"] body {
+    background: var(--bg-primary), var(--bg-image) !important;
 }
 
-.theme-toggle {
-    width: 50px;
-    height: 50px;
+/* 动态视口高度支持（现代浏览器）已移至JavaScript管理 */
+
+/* 主题切换按钮样式已移至JavaScript中完全独立管理 */
+/* 保留暗色主题下的通用样式变量 */
+
+/* 调色盘样式已移至JavaScript中完全独立管理 */
+/* 保留内部元素的基本样式 */
+
+/* Firefox、Safari特殊优化已移至JavaScript管理 */
+
+.palette-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-primary);
+}
+
+.palette-header h3 {
+    color: var(--text-primary);
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+}
+
+.palette-close {
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
     border: none;
-    background: var(--bg-card);
-    backdrop-filter: blur(25px);
-    border: 1px solid var(--border-primary);
-    color: var(--text-primary);
+    background: transparent;
+    color: var(--text-muted);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
-    transition: all 0.3s ease;
-    box-shadow: var(--shadow-light);
+    font-size: 14px;
+    transition: all 0.2s ease;
 }
 
-.theme-toggle:hover {
+.palette-close:hover {
     background: var(--bg-card-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-medium);
+    color: var(--text-primary);
+    transform: rotate(90deg);
 }
 
-.theme-toggle:active {
+.palette-content {
+    padding: 24px;
+    text-align: center;
+}
+
+.circular-palette-container {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 24px;
+}
+
+.circular-palette {
+    border-radius: 50%;
+    cursor: crosshair;
+    transition: transform 0.2s ease;
+}
+
+.circular-palette:hover {
+    transform: scale(1.05);
+}
+
+.palette-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 3px solid var(--text-primary);
+    background: var(--bg-card);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+}
+
+.selected-color {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    background: linear-gradient(135deg, rgba(30, 60, 114, 0.9) 0%, rgba(42, 82, 152, 0.8) 50%, rgba(102, 126, 234, 0.7) 100%);
+    transition: all 0.3s ease;
+}
+
+.palette-controls {
+    text-align: center;
+}
+
+.reset-btn {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    color: var(--text-secondary);
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reset-btn:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    transform: translateY(-1px);
+}
+
+.reset-btn:active {
     transform: translateY(0);
+}
+
+.reset-btn i {
+    font-size: 12px;
+    transition: transform 0.2s ease;
+}
+
+.reset-btn:hover i {
+    transform: rotate(-180deg);
+}
+
+/* 响应式设计 - 调色盘样式已移至JavaScript管理 */
+@media (max-width: 768px) {
+    /* 主题按钮样式已完全移至JavaScript管理 */
+    
+    /* 保留其他响应式样式... */
+    
+    .circular-palette {
+        width: 160px;
+        height: 160px;
+    }
+    
+    .palette-center {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .selected-color {
+        width: 20px;
+        height: 20px;
+    }
+    
+    .palette-header {
+        padding: 16px 20px;
+    }
+    
+    .palette-header h3 {
+        font-size: 16px;
+    }
+    
+    .palette-content {
+        padding: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    /* 调色盘样式已移至JavaScript管理 */
+    
+    /* 保留其他内部元素样式 */
+    
+    /* 小屏幕下调色盘内容优化 */
+    .palette-header {
+        padding: 12px 16px;
+    }
+    
+    .palette-content {
+        padding: 16px;
+    }
+    
+    .circular-palette {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .palette-center {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .selected-color {
+        width: 16px;
+        height: 16px;
+    }
 }
 
 /* 主题切换图标动画 */
 .theme-toggle i {
     transition: transform 0.3s ease;
+}
+
+/* 主题切换按钮透明样式 */
+.theme-toggle {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 
 .theme-toggle.switching i {
@@ -118,6 +319,90 @@
     }
     100% {
         transform: scale(1);
+    }
+}
+
+/* 点击进度提示动态响应式定位 */
+.click-progress-hint {
+    position: fixed;
+    top: calc(35% - env(safe-area-inset-top) / 2);
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-card);
+    /* 多浏览器兼容背景 */
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    -moz-backdrop-filter: blur(25px);
+    border: 1px solid var(--border-primary);
+    border-radius: 15px;
+    padding: 16px 24px;
+    color: var(--text-primary);
+    font-size: 16px;
+    font-weight: 600;
+    text-align: center;
+    z-index: 10001;
+    box-shadow: var(--shadow-heavy);
+    opacity: 0;
+    scale: 0.8;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: none;
+    white-space: nowrap;
+    max-width: calc(100vw - 60px - env(safe-area-inset-left) - env(safe-area-inset-right));
+    word-wrap: break-word;
+    will-change: transform, opacity;
+}
+
+/* Firefox 降级背景 */
+@-moz-document url-prefix() {
+    .click-progress-hint {
+        background: rgba(30, 30, 40, 0.95) !important;
+        backdrop-filter: none;
+    }
+    
+    [data-theme="dark"] .click-progress-hint {
+        background: rgba(50, 50, 50, 0.95) !important;
+    }
+}
+
+/* 移动端进度提示优化 */
+@media (max-width: 768px) {
+    .click-progress-hint {
+        font-size: 14px;
+        padding: 12px 20px;
+        border-radius: 12px;
+        max-width: calc(100vw - 40px - env(safe-area-inset-left) - env(safe-area-inset-right));
+        /* 移动端更明显向上偏移，避免与调色盘重叠 */
+        top: calc(30% - env(safe-area-inset-top) / 2);
+        background: rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    [data-theme="dark"] .click-progress-hint {
+        background: rgba(50, 50, 50, 0.9) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .click-progress-hint {
+        font-size: 13px;
+        padding: 10px 18px;
+        border-radius: 10px;
+        max-width: calc(100vw - 30px - env(safe-area-inset-left) - env(safe-area-inset-right));
+        top: calc(25% - env(safe-area-inset-top) / 2);
+        /* 超小屏幕允许换行，更明显向上偏移 */
+        white-space: normal;
+        line-height: 1.4;
+    }
+}
+
+/* 窗口大小变化时的动态适配已移至JavaScript管理 */
+@media (orientation: landscape) and (max-height: 600px) {
+    /* 调色盘样式已移至JavaScript管理 */
+    
+    .click-progress-hint {
+        top: 50%;
+        font-size: 12px;
+        padding: 8px 16px;
     }
 }
 
@@ -1272,5 +1557,4 @@ footer a {
 
 [data-theme="dark"] .stats-toggle .github-refresh-icon:hover:not(:disabled) {
     border-color: rgba(255, 255, 255, 0.3) !important;
-}
 }

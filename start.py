@@ -54,7 +54,25 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path == "/api/github/contributions":
             return self.handle_contributions(parsed)
+        elif parsed.path == "/api/checkin":
+            return self.handle_checkin_get(parsed)
+        elif parsed.path == "/api/theme":
+            return self.handle_theme_get(parsed)
         return super().do_GET()
+
+    def do_POST(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == "/api/checkin":
+            return self.handle_checkin_post(parsed)
+        elif parsed.path == "/api/theme":
+            return self.handle_theme_post(parsed)
+        return self.send_json({"error": "endpoint not found"}, 404)
+
+    def do_DELETE(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == "/api/theme":
+            return self.handle_theme_delete(parsed)
+        return self.send_json({"error": "endpoint not found"}, 404)
 
     def handle_contributions(self, parsed):
         try:
@@ -108,6 +126,127 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             'total': calendar.get('totalContributions', 0),
             'colors': calendar.get('colors', [])
         }
+
+    # 简单的文件存储（用于演示，生产环境应使用数据库）
+    _storage_file = os.path.join(os.path.dirname(__file__), 'data.json')
+
+    def load_storage(self):
+        """加载存储数据"""
+        try:
+            if os.path.exists(self._storage_file):
+                with open(self._storage_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+        except Exception as e:
+            print(f"加载存储数据失败: {e}")
+        return {"checkin": {}, "theme": None}
+
+    def save_storage(self, data):
+        """保存存储数据"""
+        try:
+            with open(self._storage_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            return True
+        except Exception as e:
+            print(f"保存存储数据失败: {e}")
+            return False
+
+    def handle_checkin_get(self, parsed):
+        # 签到 API - 获取用户签到数据
+        try:
+            qs = urllib.parse.parse_qs(parsed.query)
+            uid = (qs.get('uid') or [None])[0]
+            if not uid:
+                return self.send_json({"error": "missing uid parameter"}, 400)
+
+            data = self.load_storage()
+            user_data = data["checkin"].get(uid, {"days": []})
+            return self.send_json({"success": True, "data": user_data}, 200)
+        except Exception as e:
+            return self.send_json({"error": "server error", "detail": str(e)}, 500)
+
+    def handle_checkin_post(self, parsed):
+        # 签到 API - 保存用户签到数据
+        try:
+            qs = urllib.parse.parse_qs(parsed.query)
+            uid = (qs.get('uid') or [None])[0]
+            if not uid:
+                return self.send_json({"error": "missing uid parameter"}, 400)
+
+            # 读取请求体
+            content_length = int(self.headers.get('content-length', 0))
+            if content_length > 0:
+                post_data = self.rfile.read(content_length)
+                body = json.loads(post_data.decode('utf-8'))
+                day = body.get('day')
+                if not day:
+                    return self.send_json({"error": "missing day parameter"}, 400)
+            else:
+                return self.send_json({"error": "missing request body"}, 400)
+
+            # 更新数据
+            data = self.load_storage()
+            if uid not in data["checkin"]:
+                data["checkin"][uid] = {"days": []}
+
+            if day not in data["checkin"][uid]["days"]:
+                data["checkin"][uid]["days"].append(day)
+
+            if self.save_storage(data):
+                return self.send_json({"success": True, "message": "checkin saved"}, 200)
+            else:
+                return self.send_json({"error": "failed to save data"}, 500)
+
+        except Exception as e:
+            return self.send_json({"error": "server error", "detail": str(e)}, 500)
+
+    def handle_theme_get(self, parsed):
+        # 主题 API - 获取全局主题色
+        try:
+            data = self.load_storage()
+            theme_data = data.get("theme")
+            if theme_data:
+                return self.send_json({"success": True, "data": theme_data}, 200)
+            else:
+                return self.send_json({"success": False, "message": "no theme data"}, 200)
+        except Exception as e:
+            return self.send_json({"error": "server error", "detail": str(e)}, 500)
+
+    def handle_theme_post(self, parsed):
+        # 主题 API - 保存全局主题色
+        try:
+            # 读取请求体
+            content_length = int(self.headers.get('content-length', 0))
+            if content_length > 0:
+                post_data = self.rfile.read(content_length)
+                theme_color = json.loads(post_data.decode('utf-8'))
+            else:
+                return self.send_json({"error": "missing request body"}, 400)
+
+            # 更新数据
+            data = self.load_storage()
+            data["theme"] = theme_color
+
+            if self.save_storage(data):
+                return self.send_json({"success": True, "message": "theme saved"}, 200)
+            else:
+                return self.send_json({"error": "failed to save data"}, 500)
+
+        except Exception as e:
+            return self.send_json({"error": "server error", "detail": str(e)}, 500)
+
+    def handle_theme_delete(self, parsed):
+        # 主题 API - 删除全局主题色
+        try:
+            data = self.load_storage()
+            data["theme"] = None
+
+            if self.save_storage(data):
+                return self.send_json({"success": True, "message": "theme deleted"}, 200)
+            else:
+                return self.send_json({"error": "failed to save data"}, 500)
+
+        except Exception as e:
+            return self.send_json({"error": "server error", "detail": str(e)}, 500)
 
     def send_json(self, obj, status=200):
         payload = json.dumps(obj).encode('utf-8')

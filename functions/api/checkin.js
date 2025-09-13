@@ -21,29 +21,57 @@ export async function onRequest(context) {
   if (!uid) return json({ error: 'missing uid' }, 400, cors);
 
   const kv = env.CHECKIN_KV;
-  if (!kv) return json({ error: 'kv_not_configured' }, 501, cors);
+  if (!kv) {
+    console.log('CHECKIN_KV not bound to environment');
+    return json({ 
+      error: 'kv_not_configured', 
+      message: 'KV存储未配置，请在Cloudflare Pages中绑定CHECKIN_KV命名空间' 
+    }, 501, cors);
+  }
 
   const key = `checkin:${uid}`;
 
-  if (method === 'GET') {
-    const raw = await kv.get(key);
-    const data = parse(raw);
-    return json(data, 200, cors);
-  }
-
-  if (method === 'POST') {
-    const body = await request.json().catch(() => ({}));
-    const day = body.day;
-    if (!day || !/^\d{4}-\d{2}-\d{2}$/.test(day)) {
-      return json({ error: 'bad day' }, 400, cors);
+  try {
+    if (method === 'GET') {
+      const raw = await kv.get(key);
+      const data = parse(raw);
+      console.log(`KV GET success for uid: ${uid}, days count: ${data.days.length}`);
+      return json(data, 200, cors);
     }
-    const raw = await kv.get(key);
-    const data = parse(raw);
-    const set = new Set(data.days || []);
-    set.add(day);
-    const merged = Array.from(set).sort();
-    await kv.put(key, JSON.stringify({ days: merged }));
-    return json({ ok: true, days: merged }, 200, cors);
+
+    if (method === 'POST') {
+      const body = await request.json().catch(() => ({}));
+      const day = body.day;
+      if (!day || !/^\d{4}-\d{2}-\d{2}$/.test(day)) {
+        return json({ error: 'bad day', message: '日期格式错误，应为YYYY-MM-DD' }, 400, cors);
+      }
+      
+      const raw = await kv.get(key);
+      const data = parse(raw);
+      const set = new Set(data.days || []);
+      const oldSize = set.size;
+      set.add(day);
+      const merged = Array.from(set).sort();
+      
+      await kv.put(key, JSON.stringify({ days: merged }));
+      
+      const isNewDay = set.size > oldSize;
+      console.log(`KV POST success for uid: ${uid}, day: ${day}, new: ${isNewDay}, total days: ${merged.length}`);
+      
+      return json({ 
+        ok: true, 
+        days: merged, 
+        newDay: isNewDay,
+        message: isNewDay ? '新访问记录已保存' : '今日已记录'
+      }, 200, cors);
+    }
+  } catch (kvError) {
+    console.error('KV operation failed:', kvError);
+    return json({ 
+      error: 'kv_operation_failed', 
+      message: 'KV存储操作失败: ' + kvError.message,
+      details: kvError.toString()
+    }, 500, cors);
   }
 
   return json({ error: 'method_not_allowed' }, 405, cors);
