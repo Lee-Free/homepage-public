@@ -256,18 +256,31 @@ texts: {
 ### 存储方式
 
 - 默认：localStorage（刷新/重启浏览器仍保留；清除"站点数据"或无痕模式会清空）
-- 可选：Cloudflare KV 永久存储（与调色盘共用同一个KV命名空间）
+- 可选：Cloudflare KV 永久存储（与调色盘共用同一个命名空间 `CHECKIN_KV`）
 
-> 如需启用 KV（可选）：
->
-> 1) 在 `functions/api/checkin.js` 已提供示例接口 `/api/checkin`：
-> - GET /api/checkin?uid=<id> 返回 { days: [] }
-> - POST /api/checkin?uid=<id> 写入某天访问记录
->
-> 2) 在 Cloudflare Pages 项目 → Settings → Functions → KV Bindings:
-> - 绑定命名空间为 `CHECKIN_KV`（与调色盘功能共用）
->
-> 3) 前端会自动探测 KV 是否可用（501 表示未配置），若可用则在访问时尝试同步。
+#### 启用 KV（可选）
+
+1) 访问统计云端接口：`functions/api/daily-visit.js`
+   - 写入：`POST /api/daily-visit`，请求体：`{ date: 'YYYY-MM-DD', timestamp: number }`
+     - 返回：`{ todayCount, totalCount, isNewVisit, message }`
+   - 查询：`GET /api/daily-visit?date=YYYY-MM-DD`（date 可省略，默认当天）
+     - 返回：`{ todayCount, totalCount, date }`
+   - 服务端自动按 IP 做每日去重，无需在前端传 IP
+
+2) Cloudflare Pages → Settings → Functions → KV namespace bindings：
+   - Variable name: `CHECKIN_KV`
+   - KV namespace: 选择你的命名空间（例如 `homepage-data`）
+
+3) 前端自动探测 KV 可用性：
+   - 若函数返回 `501`（未配置）或出错，将回退到本地存储
+   - KV 可用时，页面右下角状态会显示“存储：远程（KV）”
+
+4) KV 中的键名（可在 Cloudflare Dashboard 的 KV 浏览器中查看）：
+   - 当日计数：`daily-visit:YYYY-MM-DD`
+   - 累计计数：`daily-visit:total`
+   - 当日去重标记：`daily-visit:ip:YYYY-MM-DD:<client-ip>`（24 小时过期）
+
+补充：签到与主题色接口同样复用 `CHECKIN_KV` 命名空间（见 `functions/api/checkin.js` 与 `functions/api/theme.js`）。
 
 ### 注意
 
@@ -415,9 +428,9 @@ vercel
 3. **部署生效**：重新部署后，调色盘和访问统计会自动启用云端同步
 
 ### 状态指示
-- 🎨 **全局主题色已更新**：调色盘成功同步到云端
-- 📊 **远程（KV）**：访问统计使用云端存储
-- 📱 **仅本地生效**：KV未配置或网络异常
+- 🎨 全局主题色已更新：调色盘成功同步到云端
+- 📊 远程（KV）：访问统计使用云端存储
+- 📱 仅本地生效：KV 未配置或网络异常
 
 ## 🔍 部署前检查清单
 

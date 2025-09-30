@@ -543,29 +543,40 @@ const GITHUB_USERNAME = window.GITHUB_USERNAME ||
     (typeof CONFIG !== 'undefined' && CONFIG.github && CONFIG.github.username) ||
     'zduu'; // 默认用户名，建议在 config.js 中修改
 
-// 获取真实的GitHub统计数据
+// 获取真实的GitHub统计数据（更健壮：REST失败不影响日历渲染）
 async function fetchGitHubContributions(username, forceRefresh = false) {
     try {
-        // 获取用户基本信息
-        const userResponse = await fetch(`https://api.github.com/users/${username}`);
-        if (!userResponse.ok) throw new Error('用户API请求失败');
-        const userData = await userResponse.json();
+        // 1) 尝试获取用户与仓库信息（失败则降级为空数据）
+        let userData = {};
+        let repos = [];
+        let events = [];
+        try {
+            const userResponse = await fetch(`https://api.github.com/users/${username}`);
+            if (userResponse.ok) userData = await userResponse.json();
+            else console.warn('用户API请求失败:', userResponse.status);
+        } catch (e) {
+            console.warn('用户API请求异常:', e);
+        }
+        try {
+            const reposResponse = await fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`);
+            if (reposResponse.ok) repos = await reposResponse.json();
+            else console.warn('仓库API请求失败:', reposResponse.status);
+        } catch (e) {
+            console.warn('仓库API请求异常:', e);
+        }
+        try {
+            const eventsResponse = await fetch(`https://api.github.com/users/${username}/events?per_page=100`);
+            events = eventsResponse.ok ? await eventsResponse.json() : [];
+            if (!eventsResponse.ok) console.warn('事件API请求失败:', eventsResponse.status);
+        } catch (e) {
+            console.warn('事件API请求异常:', e);
+            events = [];
+        }
 
-        // 获取用户仓库
-        const reposResponse = await fetch(`https://api.github.com/users/${username}/repos?per_page=100&sort=updated`);
-        if (!reposResponse.ok) throw new Error('仓库API请求失败');
-        const repos = await reposResponse.json();
-
-        // 获取最近的提交活动
-        const eventsResponse = await fetch(`https://api.github.com/users/${username}/events?per_page=100`);
-        const events = eventsResponse.ok ? await eventsResponse.json() : [];
-
-        // 使用GitHub用户数据进行统计
+        // 使用GitHub用户数据进行统计（可能是降级后的数据）
         const githubStats = calculateGitHubStats(userData, repos, events);
 
-        // 暂不更新统计，等待贡献日历计算更准确的连续天数和总数
-
-        // 渲染贡献日历：按配置选择数据源
+        // 2) 渲染贡献日历：优先使用后端代理，失败再用 events 估算
         const source = (CONFIG && CONFIG.github && CONFIG.github.calendarSource) || 'auto';
         let calendarData = null;
         if (source === 'proxy' || source === 'auto') {
@@ -579,7 +590,8 @@ async function fetchGitHubContributions(username, forceRefresh = false) {
         if (!calendarData) {
             calendarData = buildDailyContribMap(events);
         }
-        // 基于贡献日历数据计算总提交和连续天数
+
+        // 3) 基于贡献日历数据计算并渲染
         const statsFromCalendar = calculateStatsFromCalendar(calendarData);
         updateGitHubDisplay({
             totalCommits: statsFromCalendar.totalContribs,
@@ -591,7 +603,7 @@ async function fetchGitHubContributions(username, forceRefresh = false) {
         });
         renderContribCalendar(calendarData);
 
-        // 添加刷新按钮功能
+        // 4) 添加刷新按钮功能
         addRefreshButton(username);
 
 // 通过后端代理获取精确贡献日历（GraphQL）
@@ -2159,7 +2171,7 @@ function detectDevTools() {
     // 显示开发者工具信息
     function showDevToolsMessage() {
         // 控制台输出样式化信息
-        console.clear();
+        
         console.log('%c🎉 欢迎来到作者 IonRh的个人主页！', 'color: #74b9ff; font-size: 20px; font-weight: bold;');
         console.log('%c👋 作者 IonRh的博客：https://blog.loadke.tech！', 'color: #00b894; font-size: 16px; font-weight: bold;');
         console.log('%c📧 联系作者 IonRh：https://t.me/IonMagic', 'color: #fdcb6e; font-size: 14px;');
